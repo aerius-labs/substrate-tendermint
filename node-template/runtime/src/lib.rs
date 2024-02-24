@@ -1,10 +1,5 @@
-#![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
-
-// Make the WASM binary available.
-#[cfg(feature = "std")]
-include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use frame_support::traits::ConstBool;
 use pallet_tendermint::{fp_primitives, AuthorityList as TendermintAuthorityList};
@@ -18,7 +13,6 @@ use sp_runtime::{
     ApplyExtrinsicResult, MultiSignature,
 };
 use sp_std::prelude::*;
-#[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
@@ -40,7 +34,6 @@ pub use frame_system::Call as SystemCall;
 pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
 use pallet_transaction_payment::CurrencyAdapter;
-#[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 pub use sp_runtime::{Perbill, Permill};
 
@@ -127,7 +120,6 @@ pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 
 /// The version information used to identify this runtime when compiled natively.
-#[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
     NativeVersion {
         runtime_version: VERSION,
@@ -232,22 +224,22 @@ impl pallet_timestamp::Config for Runtime {
 pub const EXISTENTIAL_DEPOSIT: u128 = 500;
 
 impl pallet_balances::Config for Runtime {
-    type MaxLocks = ConstU32<50>;
-    type MaxReserves = ();
-    type ReserveIdentifier = [u8; 8];
-    /// The type for recording an account's balance.
-    type Balance = Balance;
     /// The ubiquitous event type.
     type RuntimeEvent = RuntimeEvent;
+    type RuntimeHoldReason = ();
+    type RuntimeFreezeReason = ();
+    type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+    /// The type for recording an account's balance.
+    type Balance = Balance;
     type DustRemoval = ();
     type ExistentialDeposit = ConstU128<EXISTENTIAL_DEPOSIT>;
     type AccountStore = System;
-    type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+    type ReserveIdentifier = [u8; 8];
     type FreezeIdentifier = ();
-    type MaxFreezes = ();
-    type RuntimeHoldReason = ();
-    type RuntimeFreezeReason = ();
+    type MaxLocks = ConstU32<50>;
+    type MaxReserves = ();
     type MaxHolds = ();
+    type MaxFreezes = ();
 }
 
 // parameter_types! {

@@ -163,7 +163,7 @@ where
 
     fn init_voter(&self) -> environment::VoterData<Self::Id> {
         let local_id = local_authority_id(&self.voters, self.config.keystore.as_ref())
-            .expect("expect to have local_id to be a validtor.");
+            .expect("expect to have local_id to be a validator.");
 
         environment::VoterData { local_id }
     }

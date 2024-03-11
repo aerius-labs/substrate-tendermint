@@ -8,7 +8,7 @@ use finality_tendermint::{
     messages::{self, GlobalMessageIn, GlobalMessageOut},
     VoterSet,
 };
-use futures::{channel::mpsc, future, stream, Future, FutureExt, Sink, SinkExt, Stream, StreamExt};
+use futures::{channel::mpsc, future, stream, Future, FutureExt, Sink, Stream, StreamExt};
 use log::{debug, trace};
 use parity_scale_codec::{Decode, Encode};
 use parking_lot::Mutex;
@@ -64,7 +64,7 @@ mod cost {
     use sc_network::ReputationChange as Rep;
     pub(super) const PAST_REJECTION: Rep = Rep::new(-50, "Grandpa: Past message");
     pub(super) const BAD_SIGNATURE: Rep = Rep::new(-100, "Grandpa: Bad signature");
-    pub(super) const MALFORMED_CATCH_UP: Rep = Rep::new(-1000, "Grandpa: Malformed catch-up");
+    // pub(super) const MALFORMED_CATCH_UP: Rep = Rep::new(-1000, "Grandpa: Malformed catch-up");
     pub(super) const MALFORMED_COMMIT: Rep = Rep::new(-1000, "Grandpa: Malformed precommit");
     pub(super) const FUTURE_MESSAGE: Rep = Rep::new(-500, "Grandpa: Future message");
     pub(super) const UNKNOWN_VOTER: Rep = Rep::new(-150, "Grandpa: Unknown voter");
@@ -73,16 +73,16 @@ mod cost {
     pub(super) const PER_UNDECODABLE_BYTE: i32 = -5;
     pub(super) const PER_SIGNATURE_CHECKED: i32 = -25;
     pub(super) const PER_BLOCK_LOADED: i32 = -10;
-    pub(super) const INVALID_CATCH_UP: Rep = Rep::new(-5000, "Grandpa: Invalid catch-up");
+    // pub(super) const INVALID_CATCH_UP: Rep = Rep::new(-5000, "Grandpa: Invalid catch-up");
     pub(super) const INVALID_COMMIT: Rep = Rep::new(-5000, "Grandpa: Invalid precommit");
     pub(super) const OUT_OF_SCOPE_MESSAGE: Rep = Rep::new(-500, "Grandpa: Out-of-scope message");
-    pub(super) const CATCH_UP_REQUEST_TIMEOUT: Rep =
-        Rep::new(-200, "Grandpa: Catch-up request timeout");
+    // pub(super) const CATCH_UP_REQUEST_TIMEOUT: Rep =
+    //     Rep::new(-200, "Grandpa: Catch-up request timeout");
 
     // cost of answering a catch up request
-    pub(super) const CATCH_UP_REPLY: Rep = Rep::new(-200, "Grandpa: Catch-up reply");
-    pub(super) const HONEST_OUT_OF_SCOPE_CATCH_UP: Rep =
-        Rep::new(-200, "Grandpa: Out-of-scope catch-up");
+    // pub(super) const CATCH_UP_REPLY: Rep = Rep::new(-200, "Grandpa: Catch-up reply");
+    // pub(super) const HONEST_OUT_OF_SCOPE_CATCH_UP: Rep =
+        // Rep::new(-200, "Grandpa: Out-of-scope catch-up");
 }
 
 // benefit scalars for reporting peers.
@@ -90,10 +90,10 @@ mod benefit {
     use sc_network::ReputationChange as Rep;
     pub(super) const NEIGHBOR_MESSAGE: Rep = Rep::new(100, "Grandpa: Neighbor message");
     pub(super) const ROUND_MESSAGE: Rep = Rep::new(100, "Grandpa: Round message");
-    pub(super) const BASIC_VALIDATED_CATCH_UP: Rep = Rep::new(200, "Grandpa: Catch-up message");
+    // pub(super) const BASIC_VALIDATED_CATCH_UP: Rep = Rep::new(200, "Grandpa: Catch-up message");
     pub(super) const BASIC_VALIDATED_COMMIT: Rep = Rep::new(100, "Grandpa: Commit");
     pub(super) const PER_EQUIVOCATION: i32 = 10;
-    pub(super) const BASIC_GLOBAL_MESSAGE: Rep = Rep::new(100, "PBFT: Global message");
+    // pub(super) const BASIC_GLOBAL_MESSAGE: Rep = Rep::new(100, "PBFT: Global message");
 }
 /// A type that ties together our local authority id and a keystore where it is
 /// available for signing.
@@ -167,7 +167,7 @@ pub(crate) fn global_topic<B: BlockT>(set_id: SetIdNumber) -> B::Hash {
 /// Bridge between the underlying network service, gossiping consensus messages and Grandpa
 #[derive(Clone)]
 pub(crate) struct NetworkBridge<B: BlockT, N: Network<B>, S: Syncing<B>> {
-    service: N,
+    _service: N,
     sync: S,
     gossip_engine: Arc<Mutex<GossipEngine<B>>>,
     validator: Arc<GossipValidator<B>>,
@@ -267,7 +267,7 @@ impl<B: BlockT, N: Network<B>, S: Syncing<B>> NetworkBridge<B, N, S> {
             periodic::NeighborPacketWorker::new();
 
         NetworkBridge {
-            service,
+            _service: service,
             sync,
             gossip_engine,
             validator,

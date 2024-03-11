@@ -5,7 +5,7 @@ use crate::{
     service,
 };
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
-use sc_cli::{SubstrateCli};
+use sc_cli::SubstrateCli;
 use sc_service::PartialComponents;
 use sp_keyring::Sr25519Keyring;
 use tendermint_runtime::{Block, EXISTENTIAL_DEPOSIT};
@@ -42,6 +42,7 @@ impl SubstrateCli for Cli {
         Ok(match id {
             "dev" => Box::new(chain_spec::development_config()?),
             "" | "local" => Box::new(chain_spec::local_testnet_config()?),
+            "4players" => Box::new(chain_spec::local_4_players_config()?),
             path => Box::new(chain_spec::ChainSpec::from_json_file(
                 std::path::PathBuf::from(path),
             )?),

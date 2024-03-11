@@ -144,7 +144,7 @@ pub(crate) fn make_network() -> (Network, NetworkRouting) {
         NetworkRouting {
             rounds,
             global,
-            rule,
+            _rule: rule,
             notify,
         },
     )
@@ -155,14 +155,14 @@ pub(crate) fn make_network() -> (Network, NetworkRouting) {
 #[derive(Default, Copy, Clone)]
 pub(crate) struct VoterState {
     pub(crate) last_finalized: BlockNumber,
-    pub(crate) view_number: u64,
+    pub(crate) _view_number: u64,
 }
 
 impl VoterState {
     pub fn new() -> Self {
         Self {
             last_finalized: 0,
-            view_number: 0,
+            _view_number: 0,
         }
     }
 }
@@ -174,7 +174,7 @@ type Rule = Box<dyn Send + Fn(&Id, &VoterState, &Id, &VoterState) -> bool>;
 #[derive(Default)]
 pub(crate) struct RoutingRule {
     /// All peers in the network, same as VoterSet.
-    nodes: Vec<Id>,
+    _nodes: Vec<Id>,
     /// Track all peers' state.
     state_tracker: HashMap<Id, VoterState>,
     /// Rule for routing.
@@ -185,7 +185,7 @@ pub(crate) struct RoutingRule {
 impl RoutingRule {
     pub fn new() -> Self {
         Self {
-            nodes: Vec::new(),
+            _nodes: Vec::new(),
             state_tracker: HashMap::new(),
             rules: Vec::new(),
         }
@@ -225,6 +225,7 @@ impl RoutingRule {
     }
 
     /// A preset rule to isolate a peer from others.
+    #[allow(dead_code)]
     pub fn isolate(&mut self, node: Id) {
         let _isolate =
             move |from: &Id, _from_state: &VoterState, to: &Id, _to_state: &VoterState| {
@@ -234,6 +235,7 @@ impl RoutingRule {
     }
 
     /// A preset rule to isolate a peer from others after required block height.
+    #[allow(dead_code)]
     pub fn isolate_after(&mut self, node: Id, after: BlockNumber) {
         let _isolate_after =
             move |from: &Id, from_state: &VoterState, to: &Id, to_state: &VoterState| {
@@ -251,11 +253,12 @@ pub struct NetworkRouting {
     /// Global message network.
     global: Arc<Mutex<GlobalMessageNetwork>>,
     /// Routing rule.
-    pub(crate) rule: Arc<Mutex<RoutingRule>>,
+    pub(crate) _rule: Arc<Mutex<RoutingRule>>,
     notify: Arc<Mutex<Option<Waker>>>,
 }
 
 impl NetworkRouting {
+    #[allow(dead_code)]
     pub fn register_global_validator_hook(
         &mut self,
         hook: Box<dyn Fn(&GlobalMessageIn<Hash, BlockNumber, Signature, Id>) + Sync + Send>,
@@ -268,7 +271,7 @@ impl Future for NetworkRouting {
     type Output = ();
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        self.notify.lock().insert(cx.waker().clone());
+        let _ = self.notify.lock().insert(cx.waker().clone());
 
         tracing::trace!("NetworkRouting::poll start.");
         let mut rounds = self.rounds.lock();
@@ -379,6 +382,7 @@ impl Network {
     }
 
     /// Send a message to all nodes.
+    #[allow(dead_code)]
     pub fn send_message(&self, message: GlobalMessageIn<Hash, BlockNumber, Signature, Id>) {
         self.global.lock().send_message(message);
     }

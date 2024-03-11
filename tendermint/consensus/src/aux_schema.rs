@@ -18,11 +18,11 @@ use crate::{
 
 const VERSION_KEY: &[u8] = b"tendermint_schema_version";
 const SET_STATE_KEY: &[u8] = b"tendermint_completed_round";
-const CONCLUDED_ROUNDS: &[u8] = b"tendermint_concluded_rounds";
+// const CONCLUDED_ROUNDS: &[u8] = b"tendermint_concluded_rounds";
 const AUTHORITY_SET_KEY: &[u8] = b"tendermint_voters";
 const BEST_JUSTIFICATION: &[u8] = b"tendermint_best_justification";
 
-const CURRENT_VERSION: u32 = 3;
+// const CURRENT_VERSION: u32 = 3;
 
 pub(crate) fn load_decode<B: AuxStore, T: Decode>(
     backend: &B,
@@ -84,9 +84,6 @@ where
                 "Unsupported TMNT DB version: {:?}",
                 other
             )))
-        }
-        _ => {
-            return Err(ClientError::Backend("Unsupported TMNT DB version: None".to_string()))
         }
     }
 

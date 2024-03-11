@@ -17,28 +17,6 @@ impl RPCClient {
     }
 }
 
-// impl RPCServer {
-//     async fn proposal(&self, msg: Proposal) -> ProposalReply {
-//         unimplemented!()
-//     }
-//
-//     async fn hello(&self, msg: String) -> String {
-//         format!("Hi {} from {}", msg, "1")
-//     }
-// }
-
-// enum Request {
-//     Proposal(Proposal),
-//     Prevote(Prevote),
-//     Precommit(Precommit),
-// }
-//
-// enum Response {
-//     Proposal(ProposalReply),
-//     Prevote(PrevoteReply),
-//     Precommit(PrecommitReply),
-// }
-
 pub(crate) struct NewClient {
     client: RPCClient,
     /// A Future to be polled
@@ -168,18 +146,3 @@ impl Dispatch {
         unimplemented!()
     }
 }
-
-// struct RPCServer {
-//     sender: UnboundedSender<String>,
-//     receiver: UnboundedReceiver<String>,
-// }
-//
-// impl RPCServer {
-//     fn new() -> Self {
-//         RPCServer {}
-//     }
-// }
-
-// struct RPCPair {}
-//
-// impl RPCPair {}

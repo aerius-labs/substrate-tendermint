@@ -22,11 +22,6 @@ use crate::{environment, CompactCommit, SignedMessage};
 use super::{benefit, cost, Round, SetId};
 
 const REBROADCAST_AFTER: Duration = Duration::from_secs(60 * 5);
-const CATCH_UP_REQUEST_TIMEOUT: Duration = Duration::from_secs(45);
-const CATCH_UP_PROCESS_TIMEOUT: Duration = Duration::from_secs(30);
-/// Maximum number of rounds we are behind a peer before issuing a
-/// catch up request.
-const CATCH_UP_THRESHOLD: u64 = 0;
 
 /// The total round duration measured in periods of gossip duration:
 /// 2 gossip durations for prevote timer
@@ -46,7 +41,6 @@ const PROPAGATION_ALL: f32 = 3.0;
 /// of gossip a message has very likely reached all nodes on the network (`log4(3000)`).
 const LUCKY_PEERS: usize = 4;
 
-type Report = (PeerId, ReputationChange);
 
 /// An outcome of examining a message.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -617,6 +611,7 @@ enum PendingCatchUp {
     // /// Pending catch up request which has not been answered yet.
     // Requesting { who: PeerId, request: CatchUpRequestMessage, instant: Instant },
     /// Pending catch up request that was answered and is being processed.
+    #[allow(dead_code)]
     Processing { instant: Instant },
 }
 
@@ -643,10 +638,12 @@ impl CatchUpConfig {
         }
     }
 
+    #[allow(dead_code)]
     fn disabled() -> CatchUpConfig {
         CatchUpConfig::Disabled
     }
 
+    #[allow(dead_code)]
     fn request_allowed<N>(&self, peer: &PeerInfo<N>) -> bool {
         match self {
             CatchUpConfig::Disabled => false,
@@ -670,7 +667,7 @@ struct Inner<Block: BlockT> {
     config: crate::Config,
     next_rebroadcast: Instant,
     pending_catch_up: PendingCatchUp,
-    catch_up_config: CatchUpConfig,
+    _catch_up_config: CatchUpConfig,
 }
 
 type MaybeMessage<Block> = Option<(Vec<PeerId>, NeighborPacket<NumberFor<Block>>)>;
@@ -686,7 +683,7 @@ impl<Block: BlockT> Inner<Block> {
             next_rebroadcast: Instant::now() + REBROADCAST_AFTER,
             authorities: Vec::new(),
             pending_catch_up: PendingCatchUp::None,
-            catch_up_config,
+            _catch_up_config: catch_up_config,
             config,
         }
     }
@@ -904,6 +901,7 @@ impl<Block: BlockT> Inner<Block> {
         Action::ProcessAndDiscard(topic, benefit::NEIGHBOR_MESSAGE)
     }
 
+    #[allow(dead_code)]
     fn note_catch_up_message_processed(&mut self) {
         match &self.pending_catch_up {
             PendingCatchUp::Processing { .. } => {
@@ -1064,7 +1062,7 @@ impl Metrics {
 /// A validator for Tendermint gossip messages.
 pub(super) struct GossipValidator<Block: BlockT> {
     inner: parking_lot::RwLock<Inner<Block>>,
-    set_state: environment::SharedVoterSetState<Block>,
+    _set_state: environment::SharedVoterSetState<Block>,
     report_sender: TracingUnboundedSender<PeerReport>,
     metrics: Option<Metrics>,
     telemetry: Option<TelemetryHandle>,
@@ -1092,7 +1090,7 @@ impl<Block: BlockT> GossipValidator<Block> {
         let (tx, rx) = tracing_unbounded("mpsc_grandpa_gossip_validator", 100_100);
         let val = GossipValidator {
             inner: parking_lot::RwLock::new(Inner::new(config)),
-            set_state,
+            _set_state: set_state,
             report_sender: tx,
             metrics,
             telemetry,
@@ -1145,7 +1143,7 @@ impl<Block: BlockT> GossipValidator<Block> {
     }
 
     /// Note that we've processed a catch up message.
-    pub(super) fn note_catch_up_message_processed(&self) {
+    pub(super) fn _note_catch_up_message_processed(&self) {
         self.inner.write().note_catch_up_message_processed();
     }
 

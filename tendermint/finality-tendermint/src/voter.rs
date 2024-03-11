@@ -23,6 +23,7 @@ use crate::messages::BlockFinalizationData;
 
 use self::report::VoterStateT;
 
+// Represents the current state of the voter in the consensus process
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum CurrentState {
     Proposal,
@@ -42,6 +43,7 @@ impl CurrentState {
     }
 }
 
+// Module for reporting the state of the voter
 pub mod report {
     use std::collections::HashSet;
 
@@ -55,6 +57,7 @@ pub mod report {
         fn get(&self) -> VoterState<Hash, Id>;
     }
 
+    // Represents the state of a single round in the consensus process
     #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct RoundState<Hash, Id: Eq + std::hash::Hash> {
         pub state: CurrentState,
@@ -66,6 +69,7 @@ pub mod report {
         pub precommit_ids: HashSet<Id>,
     }
 
+    // Represents the overall state of the voter in the consensus process
     #[derive(Clone, Debug)]
     pub struct VoterState<Hash, Id: Eq + std::hash::Hash> {
         // Voting rounds running in the background.
@@ -75,6 +79,7 @@ pub mod report {
     }
 }
 
+// The main structure representing a voter in the consensus process
 pub struct Voter<E: Environment> {
     env: Arc<E>,
     global: Arc<Mutex<GlobalState<E>>>,
@@ -84,6 +89,7 @@ pub struct Voter<E: Environment> {
 }
 
 impl<E: Environment> Voter<E> {
+    // Creates a new Voter instance
     pub fn new(
         env: Arc<E>,
         global_in: E::GlobalIn,
@@ -103,6 +109,7 @@ impl<E: Environment> Voter<E> {
         }
     }
 
+    // Starts the consensus process for the voter
     pub async fn start(&mut self) {
         loop {
             let round = self.global.lock().round;
@@ -149,6 +156,7 @@ impl<E: Environment> Voter<E> {
     }
 }
 
+// Represents a single round of the consensus process
 pub struct Round<E: Environment> {
     _local_id: E::Id,
     env: Arc<E>,
@@ -157,6 +165,7 @@ pub struct Round<E: Environment> {
 }
 
 impl<E: Environment> Round<E> {
+    // Creates a new Round instance
     fn new(env: Arc<E>, round: u64, global: Arc<Mutex<GlobalState<E>>>) -> Self {
         let RoundData {
             local_id,
@@ -174,6 +183,7 @@ impl<E: Environment> Round<E> {
         }
     }
 
+    // Determines the valid prevotes from a list of prevotes
     fn valid_prevotes(
         &self,
         prevotes: Vec<(Prevote<E::Number, E::Hash>, E::Id, E::Signature)>,
@@ -181,6 +191,7 @@ impl<E: Environment> Round<E> {
         prevotes.first().map(|(v, _, _)| v).unwrap().clone()
     }
 
+    // Determines the valid precommits from a list of precommits
     fn valid_precommits(
         &self,
         precommits: Vec<SignedCommit<E::Number, E::Hash, E::Signature, E::Id>>,
@@ -188,6 +199,7 @@ impl<E: Environment> Round<E> {
         precommits.first().unwrap().commit.clone()
     }
 
+    // Processes a proposal message and sends it to other nodes
     async fn process_proposal(
         &mut self,
         global_state: &Arc<Mutex<GlobalState<E>>>,
@@ -261,6 +273,7 @@ impl<E: Environment> Round<E> {
         }
     }
 
+    // Waits for a proposal message and sends a prevote message as soon as it is received
     async fn wait_for_proposal(
         &mut self,
         global_state: &Arc<Mutex<GlobalState<E>>>,
@@ -283,8 +296,6 @@ impl<E: Environment> Round<E> {
         let prevote = if let Ok(proposal) = fu.await {
             if proposal.target_height == height {
                 info!(target: "aft","receive proposal with same height: {:?}", proposal);
-
-                // return Err(vec![]);
             }
             info!(target: "aft","Got proposal {:?}", proposal);
             if let Some(vr) = proposal.valid_round {
@@ -350,6 +361,7 @@ impl<E: Environment> Round<E> {
         }
     }
 
+    // Retrieves prevotes and sends a precommit message
     async fn retrieve_prevotes_and_do_precommit(
         &mut self,
         global_state: &Arc<Mutex<GlobalState<E>>>,
@@ -399,6 +411,7 @@ impl<E: Environment> Round<E> {
         }
     }
 
+    // Runs a single round of the consensus process
     async fn run(
         mut self,
     ) -> Result<
@@ -431,7 +444,7 @@ impl<E: Environment> Round<E> {
         // Move to prevote state
         global_state.lock().current_state = CurrentState::Prevote;
 
-        // Retreive all prevotes and send precommit
+        // Retreive all prevotes and send precommit message
         self.retrieve_prevotes_and_do_precommit(&global_state, round, height)
             .await;
 
@@ -452,6 +465,9 @@ impl<E: Environment> Round<E> {
             info!(target: "aft","Got precommits {:?}", commits);
             let commit = self.valid_precommits(commits.clone());
 
+            // If valid precommits are received, it updates the global_state with the new height,
+            // clears the locked values and rounds, and returns a FinalizedCommit struct containing 
+            // the committed block information.
             if let Some(hash) = commit.target_hash {
                 global_state
                     .lock()
@@ -471,7 +487,10 @@ impl<E: Environment> Round<E> {
                 };
                 info!(target: "aft","Finalize commit {:?}", f_commit);
                 Ok(f_commit)
-            } else {
+            }
+            // If no valid precommits are received, it returns an error 
+            // with the list of prevotes received.
+            else {
                 Err(self
                     .round_state
                     .lock()
@@ -494,20 +513,21 @@ impl<E: Environment> Round<E> {
 
 #[derive(Clone)]
 pub struct GlobalState<E: Environment> {
-    local_id: E::Id,
-    height: E::Number,
-    round: u64,
-    decision: BTreeMap<E::Number, E::Hash>,
-    locked_value: Option<E::Hash>,
-    locked_round: Option<u64>,
-    valid_value: Option<E::Hash>,
-    valid_round: Option<u64>,
-    voters: VoterSet<E::Id>,
-    current_state: CurrentState,
-    message_log: BTreeMap<u64, Vec<Prevote<E::Number, E::Hash>>>,
+    local_id: E::Id, // The ID of the local node
+    height: E::Number, // The current height of the chain
+    round: u64, // The current round of the consensus protocol
+    decision: BTreeMap<E::Number, E::Hash>, // A map of heights to finalized block hashes
+    locked_value: Option<E::Hash>, // The locked value for the current round (if any)
+    locked_round: Option<u64>, // The round in which the locked value was set (if any)
+    valid_value: Option<E::Hash>, // The valid value for the current round (if any)
+    valid_round: Option<u64>, // The round in which the valid value was set (if any)
+    voters: VoterSet<E::Id>, // The set of voters participating in the consensus
+    current_state: CurrentState, // The current state of the consensus process
+    message_log: BTreeMap<u64, Vec<Prevote<E::Number, E::Hash>>>, // A log of prevotes for previous rounds
 }
 
 impl<E: Environment> GlobalState<E> {
+    // Initialize a new GlobalState with the given local ID and voter set
     pub fn new(local_id: E::Id, voters: VoterSet<E::Id>) -> Self {
         GlobalState {
             local_id,
@@ -524,12 +544,15 @@ impl<E: Environment> GlobalState<E> {
         }
     }
 
+    // Add the prevotes for a round to the message log, unless the prevote vector is empty
     pub fn append_round(&mut self, round: u64, prevotes: Vec<Prevote<E::Number, E::Hash>>) {
         if !prevotes.is_empty() {
             self.message_log.insert(round, prevotes);
         }
     }
 
+    // Get the prevotes for a given round from the message log
+    // Return None if the round is not in the log or the prevote vector is smaller than the threshold
     pub fn get_round(&self, round: u64) -> Option<Vec<Prevote<E::Number, E::Hash>>> {
         self.message_log
             .get(&round)
@@ -537,6 +560,8 @@ impl<E: Environment> GlobalState<E> {
             .filter(|v| v.len() > self.voters.threshold())
     }
 
+    // Set the finalized target height and hash in the decision map
+    // This is used to initialize the consensus process
     pub fn set_finalized_target(&mut self, target: (E::Number, E::Hash)) {
         self.decision.insert(target.0, target.1);
         self.height = target.0;
@@ -545,13 +570,13 @@ impl<E: Environment> GlobalState<E> {
 
 #[derive(Clone)]
 pub struct RoundState<E: Environment> {
-    global: Arc<Mutex<GlobalState<E>>>,
-    proposer: E::Id,
-    proposal: Option<Proposal<E::Number, E::Hash>>,
-    prevotes: Vec<(Prevote<E::Number, E::Hash>, E::Id, E::Signature)>,
-    precommits: Vec<SignedCommit<E::Number, E::Hash, E::Signature, E::Id>>,
-    incoming: Option<E::In>,
-    waker: Option<Waker>,
+    global: Arc<Mutex<GlobalState<E>>>, // A shared reference to the global state
+    proposer: E::Id, // The ID of the proposer for this round
+    proposal: Option<Proposal<E::Number, E::Hash>>, // The proposal for this round (if any)
+    prevotes: Vec<(Prevote<E::Number, E::Hash>, E::Id, E::Signature)>, // The prevotes received for this round
+    precommits: Vec<SignedCommit<E::Number, E::Hash, E::Signature, E::Id>>, // The precommits received for this round
+    incoming: Option<E::In>, // A stream of incoming messages for this round
+    waker: Option<Waker>, // A waker for waking up the task when new messages arrive
 }
 
 impl<E: Environment> RoundState<E> {
@@ -567,6 +592,7 @@ impl<E: Environment> RoundState<E> {
         }
     }
 
+    // Check if the local node is the proposer for this round
     fn is_proposer(&self) -> bool {
         self.proposer == self.global.lock().local_id
     }
@@ -580,6 +606,7 @@ impl<E: Environment> RoundState<E> {
             <E as Environment>::Id,
         >,
     ) {
+        // Process an incoming signed message for this round
         trace!("Processing incoming message {:?}", signed_msg);
         let SignedMessage {
             id,
@@ -587,6 +614,8 @@ impl<E: Environment> RoundState<E> {
             signature,
         } = signed_msg;
         match msg {
+            // If the message is a proposal and it's from the proposer, update the proposal for this round
+            // Also, remove any prevotes or precommits for lower heights
             Message::Proposal(proposal) => {
                 if self.proposer == id {
                     self.proposal = Some(proposal);
@@ -598,6 +627,7 @@ impl<E: Environment> RoundState<E> {
                     s.commit.target_height >= self.proposal.as_ref().unwrap().target_height
                 });
             }
+            // If the message is a prevote, add it to the prevote list if it's for the current height or higher
             Message::Prevote(prevote) => {
                 if let Some(proposal) = &self.proposal {
                     if prevote.target_height == proposal.target_height {
@@ -610,6 +640,7 @@ impl<E: Environment> RoundState<E> {
                     }
                 }
             }
+            // If the message is a precommit, add it to the precommit list if it's for the current height or higher
             Message::Precommit(precommit) => {
                 if let Some(proposal) = &self.proposal {
                     if precommit.target_height == proposal.target_height {
@@ -631,6 +662,7 @@ impl<E: Environment> RoundState<E> {
                 }
             }
         }
+        // Wake up the task if a waker is set
         if let Some(w) = self.waker.take() { w.wake() }
     }
 }
@@ -650,6 +682,7 @@ where
         <E as Environment>::Number: Send,
         <E as Environment>::Hash: Send,
     {
+        // Return a shared voter state object that can be used to query the current state
         Box::new(SharedVoterState(self.best.clone()))
     }
 }
@@ -662,7 +695,7 @@ pub struct InnerVoterState<E>
 where
     E: Environment,
 {
-    best: Arc<Mutex<RoundState<E>>>,
+    best: Arc<Mutex<RoundState<E>>>, // The best current round state
 }
 
 impl<E> InnerVoterState<E>
@@ -685,6 +718,8 @@ where
     }
 }
 
+// A shareable object that implements the VoterStateT trait, 
+// allowing external querying of the voter's state
 struct SharedVoterState<E>(Arc<Mutex<InnerVoterState<E>>>)
 where
     E: Environment;

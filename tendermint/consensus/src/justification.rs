@@ -4,7 +4,7 @@ use finality_tendermint::{messages, BlockNumberOps, VoterSet};
 use parity_scale_codec::{Decode, Encode};
 use sp_blockchain::{Error as ClientError, HeaderBackend};
 use sp_finality_tendermint::AuthorityId;
-use sp_runtime::traits::{Block as BlockT, Header as HeaderT, NumberFor};
+use sp_runtime::traits::{Block as BlockT, NumberFor};
 
 use crate::{AuthorityList, Error, FinalizedCommit};
 

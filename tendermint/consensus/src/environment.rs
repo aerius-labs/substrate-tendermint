@@ -37,8 +37,6 @@ type SignedCommit<Block> = messages::SignedCommit<
     AuthorityId,
 >;
 
-type HistoricalVotes<Block> = Vec<SignedCommit<Block>>;
-
 /// The environment we run TMNT in.
 pub(crate) struct Environment<Backend, Block: BlockT, C, N: NetworkT<Block>, S: SyncingT<Block>, SC>
 {
@@ -386,16 +384,19 @@ impl<Block: BlockT> HasVoted<Block> {
     }
 
     /// FIXME: Returns true if the voter can still propose, false otherwise.
+    #[allow(dead_code)]
     pub fn can_proposal(&self) -> bool {
         self.proposal().is_none()
     }
 
     /// Returns true if the voter can still prevote, false otherwise.
+    #[allow(dead_code)]
     pub fn can_prevote(&self) -> bool {
         self.prevote().is_none()
     }
 
     /// Returns true if the voter can still precommit, false otherwise.
+    #[allow(dead_code)]
     pub fn can_commit(&self) -> bool {
         self.precommit().is_none()
     }
@@ -492,7 +493,7 @@ impl<Block: BlockT> CompletedRounds<Block> {
 
     /// Push a new completed round, oldest round is evicted if number of rounds
     /// is higher than `NUM_LAST_COMPLETED_ROUNDS`.
-    pub fn push(&mut self, completed_round: CompletedRound<Block>) {
+    pub fn _push(&mut self, completed_round: CompletedRound<Block>) {
         use std::cmp::Reverse;
 
         match self
@@ -572,7 +573,7 @@ impl<Block: BlockT> VoterSetState<Block> {
     }
 
     /// Returns the last completed round.
-    pub(crate) fn last_completed_round(&self) -> CompletedRound<Block> {
+    pub(crate) fn _last_completed_round(&self) -> CompletedRound<Block> {
         match self {
             VoterSetState::Live {
                 completed_rounds, ..
@@ -583,7 +584,7 @@ impl<Block: BlockT> VoterSetState<Block> {
 
     /// Returns the voter set state validating that it includes the given round
     /// in current rounds and that the voter isn't paused.
-    pub fn with_current_round(
+    pub fn _with_current_round(
         &self,
         round: RoundNumber,
     ) -> Result<(&CompletedRounds<Block>, &CurrentRounds<Block>), Error> {
@@ -635,7 +636,7 @@ impl<Block: BlockT> SharedVoterSetState<Block> {
     }
 
     /// Get the authority id that we are using to vote on the given round, if any.
-    pub(crate) fn voting_on(&self, round: RoundNumber) -> Option<AuthorityId> {
+    pub(crate) fn _voting_on(&self, round: RoundNumber) -> Option<AuthorityId> {
         self.voting.read().get(&round).cloned()
     }
 
@@ -647,7 +648,7 @@ impl<Block: BlockT> SharedVoterSetState<Block> {
     /// Note that we have finished voting on the given round. If we were voting on
     /// the given round, the authority id that we were using to do it will be
     /// cleared.
-    pub(crate) fn finished_voting_on(&self, round: RoundNumber) {
+    pub(crate) fn _finished_voting_on(&self, round: RoundNumber) {
         self.voting.write().remove(&round);
     }
 
@@ -678,8 +679,8 @@ impl<Block: BlockT> SharedVoterSetState<Block> {
 #[derive(Clone)]
 pub(crate) struct Metrics {
     finality_tendermint_round: Gauge<U64>,
-    finality_tendermint_prevotes: Counter<U64>,
-    finality_tendermint_commits: Counter<U64>,
+    _finality_tendermint_prevotes: Counter<U64>,
+    _finality_tendermint_commits: Counter<U64>,
 }
 
 impl Metrics {
@@ -694,14 +695,14 @@ impl Metrics {
                 )?,
                 registry,
             )?,
-            finality_tendermint_prevotes: register(
+            _finality_tendermint_prevotes: register(
                 Counter::new(
                     "substrate_finality_tendermint_prevotes_total",
                     "Total number of TMNT prevotes cast locally.",
                 )?,
                 registry,
             )?,
-            finality_tendermint_commits: register(
+            _finality_tendermint_commits: register(
                 Counter::new(
                     "substrate_finality_tendermint_commits_total",
                     "Total number of GRANDPA commits cast locally.",

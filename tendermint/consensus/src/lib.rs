@@ -30,7 +30,7 @@ use sp_keystore::{Keystore, KeystorePtr};
 use sp_runtime::RuntimeAppPublic;
 use sp_runtime::{
     generic::BlockId,
-    traits::{Block as BlockT, Header as HeaderT, NumberFor, Zero},
+    traits::{Block as BlockT, NumberFor, Zero},
 };
 
 use std::{
@@ -189,8 +189,8 @@ pub struct LinkHalf<Block: BlockT, C, SC> {
     persistent_data: PersistentData<Block>,
     voter_commands_rx: TracingUnboundedReceiver<VoterCommand<Block::Hash, NumberFor<Block>>>,
     justification_sender: TendermintJustificationSender<Block>,
-    justification_stream: TendermintJustificationStream<Block>,
-    telemetry: Option<TelemetryHandle>,
+    _justification_stream: TendermintJustificationStream<Block>,
+    _telemetry: Option<TelemetryHandle>,
 }
 
 impl<Block: BlockT, C, SC> LinkHalf<Block, C, SC> {
@@ -365,8 +365,8 @@ where
             persistent_data,
             voter_commands_rx,
             justification_sender,
-            justification_stream,
-            telemetry,
+            _justification_stream: justification_stream,
+            _telemetry: telemetry,
         },
     ))
 }
@@ -808,8 +808,8 @@ where
         persistent_data,
         voter_commands_rx,
         justification_sender,
-        justification_stream: _,
-        telemetry: _,
+        _justification_stream: _,
+        _telemetry: _,
     } = link;
 
     let network = NetworkBridge::new(

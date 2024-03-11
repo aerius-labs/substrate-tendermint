@@ -24,13 +24,13 @@ pub struct DummyEnvironment {
     network: Network,
     listeners: Mutex<Vec<UnboundedSender<(Hash, BlockNumber)>>>,
     chain: Mutex<DummyChain>,
-    voters: Arc<Mutex<VoterSet<Id>>>,
+    _voters: Arc<Mutex<VoterSet<Id>>>,
 }
 
 impl DummyEnvironment {
     pub fn new(network: Network, local_id: Id, voters: Arc<Mutex<VoterSet<Id>>>) -> Self {
         DummyEnvironment {
-            voters,
+            _voters: voters,
             network,
             local_id,
             chain: Mutex::new(DummyChain::new()),
@@ -119,7 +119,7 @@ impl Environment for DummyEnvironment {
         self.network.rule.lock().update_state(
             self.local_id,
             VoterState {
-                view_number: data.round,
+                _view_number: data.round,
                 last_finalized: data.target_number,
             },
         );

@@ -43,7 +43,7 @@ impl CurrentState {
 }
 
 pub mod report {
-    use std::collections::{HashSet};
+    use std::collections::HashSet;
 
     use super::CurrentState;
 
@@ -78,8 +78,8 @@ pub mod report {
 pub struct Voter<E: Environment> {
     env: Arc<E>,
     global: Arc<Mutex<GlobalState<E>>>,
-    global_in: E::GlobalIn,
-    global_out: E::GlobalOut,
+    _global_in: E::GlobalIn,
+    _global_out: E::GlobalOut,
     best: Arc<Mutex<InnerVoterState<E>>>,
 }
 
@@ -96,8 +96,8 @@ impl<E: Environment> Voter<E> {
         global.lock().set_finalized_target(finalized_target);
         Voter {
             env,
-            global_in,
-            global_out,
+            _global_in: global_in,
+            _global_out: global_out,
             best: Arc::new(Mutex::new(InnerVoterState::new(local_id, global.clone()))),
             global,
         }
@@ -123,14 +123,20 @@ impl<E: Environment> Voter<E> {
                     match res {
                         Ok(f_commit) => {
                             // Send commit to global_out;
-                            self.env.finalize_block(
+                            match self.env.finalize_block(
                                  BlockFinalizationData {
                                     target_hash: f_commit.clone().target_hash,
                                     target_number: f_commit.clone().target_number,
                                     round,
                                     commits: f_commit,
                                 }
-                            );
+                            ) {
+                                Err(e) => {
+                                    // log error
+                                    panic!("Failed to finalise block Error: {:?}", e)
+                                }
+                                _ => {} // success
+                            }
                         }
                         Err(provotes) => {
                             // save round data to global state.
@@ -144,7 +150,7 @@ impl<E: Environment> Voter<E> {
 }
 
 pub struct Round<E: Environment> {
-    local_id: E::Id,
+    _local_id: E::Id,
     env: Arc<E>,
     outgoing: E::Out,
     round_state: Arc<Mutex<RoundState<E>>>,
@@ -163,7 +169,7 @@ impl<E: Environment> Round<E> {
         Round {
             env,
             outgoing,
-            local_id,
+            _local_id: local_id,
             round_state,
         }
     }
@@ -199,7 +205,12 @@ impl<E: Environment> Round<E> {
                 round,
             });
             info!(target: "aft","Proposing {:?}", proposal);
-            self.outgoing.send(proposal).await;
+            match self.outgoing.send(proposal).await {
+                Err(e) => {
+                    panic!("Failed to send proposal Error: {:?}", e);
+                },
+                _ => {}
+            };
         } else {
             info!(target: "aft", "No Valid Value");
             let decision = global_state.lock().decision.clone();
@@ -223,7 +234,12 @@ impl<E: Environment> Round<E> {
 
                 info!(target:"aft", "Proposing {:?}", proposal);
 
-                self.outgoing.send(proposal).await;
+                match self.outgoing.send(proposal).await {
+                    Err(e) => {
+                        panic!("Failed to send proposal Error: {:?}", e);
+                    },
+                    _ => {}
+                }
             } else {
                 assert_eq!(target_height, height + num::one());
                 let proposal = Message::Proposal(Proposal {
@@ -235,7 +251,12 @@ impl<E: Environment> Round<E> {
 
                 info!(target: "aft","Proposing {:?}", proposal);
 
-                self.outgoing.send(proposal).await;
+                match self.outgoing.send(proposal).await {
+                    Err(e) => {
+                        panic!("Failed to send proposal Error: {:?}", e);
+                    },
+                    _ => {}
+                }
             };
         }
     }
@@ -321,7 +342,12 @@ impl<E: Environment> Round<E> {
         };
 
         info!(target: "aft", "Sending provote {:?}", prevote);
-        self.outgoing.send(prevote).await;
+        match self.outgoing.send(prevote).await {
+            Err(e) => {
+                panic!("Failed to send prevote Error: {:?}", e);
+            },
+            _ => {}
+        }
     }
 
     async fn retrieve_prevotes_and_do_precommit(
@@ -365,7 +391,12 @@ impl<E: Environment> Round<E> {
         };
 
         info!(target: "aft","Sending precommit {:?}", precommit);
-        self.outgoing.send(precommit).await;
+        match self.outgoing.send(precommit).await {
+            Err(e) => {
+                panic!("Failed to send precommit Error: {:?}", e);
+            },
+            _ => {}
+        }
     }
 
     async fn run(
@@ -732,7 +763,7 @@ mod test {
                 .with_max_level(tracing::Level::INFO)
                 .finish();
 
-            tracing::subscriber::set_global_default(subscriber)
+            let _ = tracing::subscriber::set_global_default(subscriber)
                 .map_err(|_err| eprintln!("Unable to set global default subscriber"));
 
             #[cfg(feature = "deadlock_detection")]

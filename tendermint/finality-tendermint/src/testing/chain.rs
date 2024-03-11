@@ -65,7 +65,7 @@ impl DummyChain {
     pub fn next_to_be_finalized(&self) -> Result<(BlockNumber, Hash), ()> {
         for (hash, record) in self.inner.iter().rev() {
             if record.number == self.finalized.0 + 1 {
-                return Ok((record.number, hash.clone()));
+                return Ok((record.number, *hash));
             }
         }
 

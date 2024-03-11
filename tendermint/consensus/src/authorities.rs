@@ -73,6 +73,7 @@ where
 {
     /// Get the earliest limit-block number that's higher or equal to the given
     /// min number, if any.
+    #[allow(dead_code)]
     pub(crate) fn current_limit(&self, min: N) -> Option<N> {
         self.inner().current_limit(min)
     }
@@ -210,7 +211,7 @@ where
     /// This is useful since we know that when a change is signalled the
     /// underlying runtime authority set management module (e.g. session module)
     /// has updated its internal state (e.g. a new session started).
-    pub(crate) fn next_change<F, E>(
+    pub(crate) fn _next_change<F, E>(
         &self,
         best_hash: &H,
         is_descendent_of: &F,
@@ -644,6 +645,7 @@ impl<H, N: Add<Output = N> + Clone> PendingChange<H, N> {
 /// together with a block number for the last block in the set, or that the requested block is in
 /// the latest set, or that we don't know what set id the given block belongs to.
 #[derive(Debug, PartialEq)]
+#[allow(dead_code)]
 pub enum AuthoritySetChangeId<N> {
     /// The requested block is in the latest set.
     Latest,
@@ -675,7 +677,7 @@ impl<N: Ord + Clone> AuthoritySetChanges<N> {
         self.0.push((set_id, block_number));
     }
 
-    pub(crate) fn get_set_id(&self, block_number: N) -> AuthoritySetChangeId<N> {
+    pub(crate) fn _get_set_id(&self, block_number: N) -> AuthoritySetChangeId<N> {
         if self
             .0
             .last()

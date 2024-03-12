@@ -37,7 +37,6 @@ pub fn authority_keys_from_seed(s: &str) -> (AuraId, TendermintId) {
 }
 
 pub fn development_config() -> Result<ChainSpec, String> {
-
     Ok(ChainSpec::from_genesis(
         // Name
         "Development",
@@ -75,7 +74,6 @@ pub fn development_config() -> Result<ChainSpec, String> {
 }
 
 pub fn local_testnet_config() -> Result<ChainSpec, String> {
-
     Ok(ChainSpec::from_genesis(
         // Name
         "Local Testnet",
@@ -124,7 +122,6 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 }
 
 pub fn local_4_players_config() -> Result<ChainSpec, String> {
-
     Ok(ChainSpec::from_genesis(
         // Name
         "4 Players Local Testnet",

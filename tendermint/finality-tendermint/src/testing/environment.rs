@@ -1,6 +1,5 @@
 use core::pin::Pin;
 
-
 use futures::channel::mpsc::{self, UnboundedSender};
 use futures::{channel::mpsc::UnboundedReceiver, Sink};
 use futures::{Future, Stream};
@@ -10,8 +9,7 @@ use std::sync::Arc;
 
 use crate::environment::{Environment, RoundData, VoterData};
 use crate::messages::{
-    BlockFinalizationData, GlobalMessageIn, GlobalMessageOut, Message,
-    SignedMessage,
+    BlockFinalizationData, GlobalMessageIn, GlobalMessageOut, Message, SignedMessage,
 };
 use crate::testing::network::VoterState;
 use crate::{Error, VoterSet};

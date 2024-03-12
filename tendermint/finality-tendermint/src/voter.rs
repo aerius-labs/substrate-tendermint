@@ -130,7 +130,7 @@ impl<E: Environment> Voter<E> {
                     match res {
                         Ok(f_commit) => {
                             // Send commit to global_out;
-                            match self.env.finalize_block(
+                             if let Err(e) = self.env.finalize_block(
                                  BlockFinalizationData {
                                     target_hash: f_commit.clone().target_hash,
                                     target_number: f_commit.clone().target_number,
@@ -138,12 +138,10 @@ impl<E: Environment> Voter<E> {
                                     commits: f_commit,
                                 }
                             ) {
-                                Err(e) => {
-                                    // log error
-                                    panic!("Failed to finalise block Error: {:?}", e)
-                                }
-                                _ => {} // success
+                                // log error
+                                panic!("Failed to finalise block Error: {:?}", e)
                             }
+
                         }
                         Err(provotes) => {
                             // save round data to global state.
@@ -217,12 +215,10 @@ impl<E: Environment> Round<E> {
                 round,
             });
             info!(target: "aft","Proposing {:?}", proposal);
-            match self.outgoing.send(proposal).await {
-                Err(e) => {
-                    panic!("Failed to send proposal Error: {:?}", e);
-                },
-                _ => {}
+            if let Err(e) = self.outgoing.send(proposal).await {
+                panic!("Failed to send proposal Error: {:?}", e);
             };
+
         } else {
             info!(target: "aft", "No Valid Value");
             let decision = global_state.lock().decision.clone();
@@ -246,11 +242,8 @@ impl<E: Environment> Round<E> {
 
                 info!(target:"aft", "Proposing {:?}", proposal);
 
-                match self.outgoing.send(proposal).await {
-                    Err(e) => {
-                        panic!("Failed to send proposal Error: {:?}", e);
-                    },
-                    _ => {}
+                if let Err(e) = self.outgoing.send(proposal).await {
+                    panic!("Failed to send proposal Error: {:?}", e);
                 }
             } else {
                 assert_eq!(target_height, height + num::one());
@@ -263,11 +256,8 @@ impl<E: Environment> Round<E> {
 
                 info!(target: "aft","Proposing {:?}", proposal);
 
-                match self.outgoing.send(proposal).await {
-                    Err(e) => {
-                        panic!("Failed to send proposal Error: {:?}", e);
-                    },
-                    _ => {}
+                if let Err(e) = self.outgoing.send(proposal).await {
+                    panic!("Failed to send proposal Error: {:?}", e);
                 }
             };
         }
@@ -353,11 +343,8 @@ impl<E: Environment> Round<E> {
         };
 
         info!(target: "aft", "Sending provote {:?}", prevote);
-        match self.outgoing.send(prevote).await {
-            Err(e) => {
-                panic!("Failed to send prevote Error: {:?}", e);
-            },
-            _ => {}
+        if let Err(e) = self.outgoing.send(prevote).await {
+            panic!("Failed to send prevote Error: {:?}", e);
         }
     }
 
@@ -403,11 +390,8 @@ impl<E: Environment> Round<E> {
         };
 
         info!(target: "aft","Sending precommit {:?}", precommit);
-        match self.outgoing.send(precommit).await {
-            Err(e) => {
-                panic!("Failed to send precommit Error: {:?}", e);
-            },
-            _ => {}
+        if let Err(e) = self.outgoing.send(precommit).await {
+            panic!("Failed to send precommit Error: {:?}", e);
         }
     }
 
@@ -434,12 +418,10 @@ impl<E: Environment> Round<E> {
         info!(target: "aft", "Round {}: Proposer status: {}", round, is_proposer);
 
         if is_proposer {
-            self.process_proposal(&global_state, height, round)
-                .await;
+            self.process_proposal(&global_state, height, round).await;
         }
         // Wait for proposal and send prevote as soon as you get it
-        self.wait_for_proposal(&global_state, round, height)
-            .await;
+        self.wait_for_proposal(&global_state, round, height).await;
 
         // Move to prevote state
         global_state.lock().current_state = CurrentState::Prevote;
@@ -454,7 +436,7 @@ impl<E: Environment> Round<E> {
         let fu = futures::future::poll_fn(|cx| {
             let mut round_lock = self.round_state.lock();
             let precommits = &round_lock.precommits;
-            if &precommits.len() >= &global_state.lock().voters.threshold() {
+            if precommits.len() >= global_state.lock().voters.threshold() {
                 Poll::Ready(Ok(precommits.clone()))
             } else {
                 round_lock.waker = Some(cx.waker().clone());
@@ -466,7 +448,7 @@ impl<E: Environment> Round<E> {
             let commit = self.valid_precommits(commits.clone());
 
             // If valid precommits are received, it updates the global_state with the new height,
-            // clears the locked values and rounds, and returns a FinalizedCommit struct containing 
+            // clears the locked values and rounds, and returns a FinalizedCommit struct containing
             // the committed block information.
             if let Some(hash) = commit.target_hash {
                 global_state
@@ -488,7 +470,7 @@ impl<E: Environment> Round<E> {
                 info!(target: "aft","Finalize commit {:?}", f_commit);
                 Ok(f_commit)
             }
-            // If no valid precommits are received, it returns an error 
+            // If no valid precommits are received, it returns an error
             // with the list of prevotes received.
             else {
                 Err(self
@@ -513,16 +495,16 @@ impl<E: Environment> Round<E> {
 
 #[derive(Clone)]
 pub struct GlobalState<E: Environment> {
-    local_id: E::Id, // The ID of the local node
-    height: E::Number, // The current height of the chain
-    round: u64, // The current round of the consensus protocol
+    local_id: E::Id,                        // The ID of the local node
+    height: E::Number,                      // The current height of the chain
+    round: u64,                             // The current round of the consensus protocol
     decision: BTreeMap<E::Number, E::Hash>, // A map of heights to finalized block hashes
-    locked_value: Option<E::Hash>, // The locked value for the current round (if any)
-    locked_round: Option<u64>, // The round in which the locked value was set (if any)
-    valid_value: Option<E::Hash>, // The valid value for the current round (if any)
-    valid_round: Option<u64>, // The round in which the valid value was set (if any)
-    voters: VoterSet<E::Id>, // The set of voters participating in the consensus
-    current_state: CurrentState, // The current state of the consensus process
+    locked_value: Option<E::Hash>,          // The locked value for the current round (if any)
+    locked_round: Option<u64>,              // The round in which the locked value was set (if any)
+    valid_value: Option<E::Hash>,           // The valid value for the current round (if any)
+    valid_round: Option<u64>,               // The round in which the valid value was set (if any)
+    voters: VoterSet<E::Id>,                // The set of voters participating in the consensus
+    current_state: CurrentState,            // The current state of the consensus process
     message_log: BTreeMap<u64, Vec<Prevote<E::Number, E::Hash>>>, // A log of prevotes for previous rounds
 }
 
@@ -571,12 +553,12 @@ impl<E: Environment> GlobalState<E> {
 #[derive(Clone)]
 pub struct RoundState<E: Environment> {
     global: Arc<Mutex<GlobalState<E>>>, // A shared reference to the global state
-    proposer: E::Id, // The ID of the proposer for this round
+    proposer: E::Id,                    // The ID of the proposer for this round
     proposal: Option<Proposal<E::Number, E::Hash>>, // The proposal for this round (if any)
     prevotes: Vec<(Prevote<E::Number, E::Hash>, E::Id, E::Signature)>, // The prevotes received for this round
     precommits: Vec<SignedCommit<E::Number, E::Hash, E::Signature, E::Id>>, // The precommits received for this round
     incoming: Option<E::In>, // A stream of incoming messages for this round
-    waker: Option<Waker>, // A waker for waking up the task when new messages arrive
+    waker: Option<Waker>,    // A waker for waking up the task when new messages arrive
 }
 
 impl<E: Environment> RoundState<E> {
@@ -663,7 +645,9 @@ impl<E: Environment> RoundState<E> {
             }
         }
         // Wake up the task if a waker is set
-        if let Some(w) = self.waker.take() { w.wake() }
+        if let Some(w) = self.waker.take() {
+            w.wake()
+        }
     }
 }
 
@@ -718,7 +702,7 @@ where
     }
 }
 
-// A shareable object that implements the VoterStateT trait, 
+// A shareable object that implements the VoterStateT trait,
 // allowing external querying of the voter's state
 struct SharedVoterState<E>(Arc<Mutex<InnerVoterState<E>>>)
 where

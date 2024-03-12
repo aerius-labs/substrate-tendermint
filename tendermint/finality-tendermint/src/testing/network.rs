@@ -3,7 +3,6 @@ use crate::{
     Error,
 };
 
-
 use tracing::instrument;
 
 use super::*;
@@ -351,10 +350,9 @@ impl Network {
         tracing::trace!("make_round_comms end");
 
         // Notify the network routing task.
-        if let Some(waker) = self.notify
-            .as_ref()
-            .lock()
-            .as_ref() { waker.wake_by_ref() }
+        if let Some(waker) = self.notify.as_ref().lock().as_ref() {
+            waker.wake_by_ref()
+        }
 
         round_comm
     }
@@ -376,7 +374,6 @@ impl Network {
 
             GlobalMessageOut::Empty => GlobalMessageIn::Empty,
         };
-        
 
         global.add_node(id, f)
     }

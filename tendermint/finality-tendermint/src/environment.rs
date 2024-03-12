@@ -1,6 +1,5 @@
 use futures::{Future, Sink, Stream};
 
-
 use crate::messages::BlockFinalizationData;
 use crate::{
     messages::{GlobalMessageIn, GlobalMessageOut, Message, SignedMessage},

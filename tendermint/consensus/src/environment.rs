@@ -465,8 +465,7 @@ impl<Block: BlockT> CompletedRounds<Block> {
         let mut rounds = Vec::with_capacity(NUM_LAST_COMPLETED_VIEWS);
         rounds.push(genesis);
 
-        let voters = voters
-            .current_authorities.to_vec();
+        let voters = voters.current_authorities.to_vec();
         CompletedRounds {
             rounds,
             set_id,

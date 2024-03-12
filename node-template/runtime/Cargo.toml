@@ -34,7 +34,6 @@ sp-session = { default-features = false, git = "https://github.com/massalabs/pol
 sp-std = {  default-features = false, git = "https://github.com/massalabs/polkadot-sdk", branch = "release-polkadot-v1.3.0-std", features = ["std"] }
 sp-transaction-pool = { default-features = false, git = "https://github.com/massalabs/polkadot-sdk", branch = "release-polkadot-v1.3.0-std", features = ["std"]}
 sp-version = { default-features = false, git = "https://github.com/massalabs/polkadot-sdk", branch = "release-polkadot-v1.3.0-std", features = ["std"]}
-getrandom = { version = "0.2", features = ["js"] }
 pallet-template = { version = "4.0.0-dev", default-features = false, git = "https://github.com/massalabs/polkadot-sdk", branch = "release-polkadot-v1.3.0-std", features = ["std"] }
 
 # Used for the node template's RPCs
@@ -51,36 +50,6 @@ pallet-tendermint = { version = "0.1.0", default-features = false, path = "../..
 [features]
 default = ["std"]
 std = [
-	"frame-try-runtime?/std",
-	"frame-system-benchmarking?/std",
-	"frame-benchmarking?/std",
-	"codec/std",
-	"scale-info/std",
-	"frame-executive/std",
-	"frame-support/std",
-	"frame-system-rpc-runtime-api/std",
-	"frame-system/std",
-	"frame-try-runtime/std",
-	"pallet-aura/std",
-	"pallet-balances/std",
-	"pallet-sudo/std",
-	"pallet-tendermint/std",
-	"pallet-timestamp/std",
-	"pallet-transaction-payment-rpc-runtime-api/std",
-	"pallet-transaction-payment/std",
-	"sp-api/std",
-	"sp-block-builder/std",
-	"sp-consensus-aura/std",
-	"sp-core/std",
-	"sp-inherents/std",
-	"sp-offchain/std",
-	"sp-runtime/std",
-	"sp-session/std",
-	"sp-std/std",
-	"sp-transaction-pool/std",
-	"sp-version/std",
-	"getrandom/std",
-	"pallet-session/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",

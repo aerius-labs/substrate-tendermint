@@ -1225,6 +1225,7 @@ impl<Block: BlockT> GossipValidator<Block> {
     }
 
     #[cfg(test)]
+    #[allow(dead_code)]
     fn inner(&self) -> &parking_lot::RwLock<Inner<Block>> {
         &self.inner
     }

@@ -404,7 +404,7 @@ impl<E: Environment> Round<E> {
     > {
         // Reduce sleep time or make it conditional based on your application's requirements
         // A more responsive design might adjust this delay based on network conditions or previous round durations.
-        tokio::time::sleep(Duration::from_millis(1000)).await;
+        tokio::time::sleep(Duration::from_millis(2500)).await;
 
         let round_state = Arc::clone(&self.round_state);
         let global_state = round_state.lock().global.clone();

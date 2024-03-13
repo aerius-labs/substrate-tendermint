@@ -41,7 +41,6 @@ const PROPAGATION_ALL: f32 = 3.0;
 /// of gossip a message has very likely reached all nodes on the network (`log4(3000)`).
 const LUCKY_PEERS: usize = 4;
 
-
 /// An outcome of examining a message.
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum Consider {
@@ -376,10 +375,7 @@ impl Misbehavior {
 
                 let benefit = equivocations_caught.saturating_mul(benefit::PER_EQUIVOCATION);
 
-                ReputationChange::new(
-                    benefit.saturating_add(cost),
-                    "Grandpa: Bad commit",
-                )
+                ReputationChange::new(benefit.saturating_add(cost), "Grandpa: Bad commit")
             }
             FutureMessage => cost::FUTURE_MESSAGE,
             OutOfScopeMessage => cost::OUT_OF_SCOPE_MESSAGE,
@@ -1229,6 +1225,7 @@ impl<Block: BlockT> GossipValidator<Block> {
     }
 
     #[cfg(test)]
+    #[allow(dead_code)]
     fn inner(&self) -> &parking_lot::RwLock<Inner<Block>> {
         &self.inner
     }

@@ -579,6 +579,7 @@ mod tests {
     }
 
     impl TestChainState {
+        #[allow(dead_code)]
         fn new() -> (Self, ImportNotifications<Block>) {
             let (tx, rx) = tracing_unbounded("test", 100_100);
             let state = TestChainState {
@@ -589,12 +590,14 @@ mod tests {
             (state, rx)
         }
 
+        #[allow(dead_code)]
         fn block_status(&self) -> TestBlockStatus {
             TestBlockStatus {
                 inner: self.known_blocks.clone(),
             }
         }
 
+        #[allow(dead_code)]
         fn import_header(&self, header: Header) {
             let hash = header.hash();
             let number = *header.number();
@@ -657,6 +660,7 @@ mod tests {
         )
     }
 
+    #[allow(dead_code)]
     fn message_all_dependencies_satisfied<F>(
         msg: GlobalCommunicationIn<Block>,
         enact_dependencies: F,
@@ -688,6 +692,7 @@ mod tests {
         futures::executor::block_on(work).0.unwrap().unwrap()
     }
 
+    #[allow(dead_code)]
     fn blocking_message_on_dependencies<F>(
         msg: GlobalCommunicationIn<Block>,
         enact_dependencies: F,

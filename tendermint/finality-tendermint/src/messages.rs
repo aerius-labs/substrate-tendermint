@@ -271,10 +271,7 @@ pub enum GlobalMessageIn<D, N, S, Id> {
 #[cfg(feature = "std")]
 impl<D, N, S, Id> PartialEq for GlobalMessageIn<D, N, S, Id> {
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::Empty, Self::Empty) => true,
-            _ => false,
-        }
+        matches!((self, other), (Self::Empty, Self::Empty))
     }
 }
 

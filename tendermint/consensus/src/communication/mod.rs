@@ -82,7 +82,7 @@ mod cost {
     // cost of answering a catch up request
     // pub(super) const CATCH_UP_REPLY: Rep = Rep::new(-200, "Grandpa: Catch-up reply");
     // pub(super) const HONEST_OUT_OF_SCOPE_CATCH_UP: Rep =
-        // Rep::new(-200, "Grandpa: Out-of-scope catch-up");
+    // Rep::new(-200, "Grandpa: Out-of-scope catch-up");
 }
 
 // benefit scalars for reporting peers.
@@ -280,11 +280,10 @@ impl<B: BlockT, N: Network<B>, S: Syncing<B>> NetworkBridge<B, N, S> {
     /// Note the beginning of a new round to the `GossipValidator`.
     pub(crate) fn note_round(&self, round: Round, set_id: SetId, voters: &VoterSet<AuthorityId>) {
         // is a no-op if currently in that set.
-        self.validator.note_set(
-            set_id,
-            voters.iter().cloned().collect(),
-            |to, neighbor| self.neighbor_sender.send(to, neighbor),
-        );
+        self.validator
+            .note_set(set_id, voters.iter().cloned().collect(), |to, neighbor| {
+                self.neighbor_sender.send(to, neighbor)
+            });
 
         self.validator.note_round(round, |to, neighbor| {
             self.neighbor_sender.send(to, neighbor)
@@ -406,11 +405,10 @@ impl<B: BlockT, N: Network<B>, S: Syncing<B>> NetworkBridge<B, N, S> {
         impl Stream<Item = GlobalCommunicationIn<B>>,
         impl Sink<GlobalCommunicationOut<B>, Error = Error> + Unpin,
     ) {
-        self.validator.note_set(
-            set_id,
-            voters.iter().cloned().collect(),
-            |to, neighbor| self.neighbor_sender.send(to, neighbor),
-        );
+        self.validator
+            .note_set(set_id, voters.iter().cloned().collect(), |to, neighbor| {
+                self.neighbor_sender.send(to, neighbor)
+            });
 
         let topic = global_topic::<B>(set_id.0);
         log::debug!(target: "afp", "Global topic for incoming_global: {}", topic);

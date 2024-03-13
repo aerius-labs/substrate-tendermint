@@ -163,7 +163,7 @@ where
 
     fn init_voter(&self) -> environment::VoterData<Self::Id> {
         let local_id = local_authority_id(&self.voters, self.config.keystore.as_ref())
-            .expect("expect to have local_id to be a validtor.");
+            .expect("expect to have local_id to be a validator.");
 
         environment::VoterData { local_id }
     }
@@ -465,8 +465,7 @@ impl<Block: BlockT> CompletedRounds<Block> {
         let mut rounds = Vec::with_capacity(NUM_LAST_COMPLETED_VIEWS);
         rounds.push(genesis);
 
-        let voters = voters
-            .current_authorities.to_vec();
+        let voters = voters.current_authorities.to_vec();
         CompletedRounds {
             rounds,
             set_id,

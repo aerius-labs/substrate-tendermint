@@ -147,10 +147,8 @@ pub struct SharedVoterState<Block: BlockT> {
         RwLock<
             Option<
                 Box<
-                    dyn voter::report::VoterStateT<
-                            <Block as BlockT>::Hash,
-                            AuthorityId,
-                        > + Sync
+                    dyn voter::report::VoterStateT<<Block as BlockT>::Hash, AuthorityId>
+                        + Sync
                         + Send,
                 >,
             >,
@@ -1134,6 +1132,7 @@ fn local_authority_id(
     keystore.and_then(|keystore| {
         voters
             .iter()
-            .find(|p| Keystore::has_keys(&**keystore, &[(p.to_raw_vec(), AuthorityId::ID)])).cloned()
+            .find(|p| Keystore::has_keys(&**keystore, &[(p.to_raw_vec(), AuthorityId::ID)]))
+            .cloned()
     })
 }

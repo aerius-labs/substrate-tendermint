@@ -57,7 +57,7 @@ where
 {
 }
 
-use crate::std::{vec::Vec};
+use crate::std::vec::Vec;
 
 /// Error for Tendermint
 #[derive(Clone, PartialEq)]
@@ -92,7 +92,6 @@ pub(crate) mod testing;
 pub mod persistent {
     #[cfg(feature = "derive-codec")]
     use parity_scale_codec::{Decode, Encode};
-    
 
     /// State of the round.
     #[derive(PartialEq, Clone)]
